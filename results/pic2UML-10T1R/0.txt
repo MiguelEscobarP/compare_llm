@@ -1,0 +1,16 @@
+```plantuml
+@startuml
+class Buyer {
+  ID : int
+  Email : String
+  FullName : String
+  Address : String
+  CharPhoneNumber : String
+  Document : String
+
+ Update() + : void
+  +GetBuyer() : Buyer
+  +UpdateBuyer() : void
+}
+@enduml
+```

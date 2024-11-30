@@ -1,0 +1,18 @@
+```plaintext
+@startuml
+
+class Buyer {
+  - ID : String
+  - Email : String
+  - FullName : String
+  - Address : String
+  - PhoneNumber : String
+  - CardDetail : String
+
+  + Buyer(ID: String, Email: String, FullName: String, Address: String, PhoneNumber: String, CardDetail: String)
+  + GetBuyer() : Buyer
+  + UpdateBuyer(Email: String, FullName: String Address,: String, PhoneNumber: String, CardDetail: String) : void
+}
+
+@enduml
+```

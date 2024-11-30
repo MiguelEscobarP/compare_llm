@@ -1,0 +1,16 @@
+```plantuml
+@startuml
+class Buyer {
+    -id: String
+    -email: String
+    -fullName: String
+    -address: String
+    -paymentMethod: String
+    -createdAt: String
+
+    +Buyer(id: String, email: String, fullName: String, address: String, paymentMethod: String, createdAt: String)
+    +getBuyer(): Buyer
+    +updateBuyer(id: email String,: String, fullName: String, address: String, paymentMethod:): String void
+}
+@enduml
+```

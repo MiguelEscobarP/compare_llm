@@ -1,0 +1,361 @@
+### Step 1: Specify Java Version
+Use **Java 11** for this Spring Boot project.
+
+### Step 2: Spring Initializr
+Use Spring Initializr (https://start.spring.io/) to create the project with the following configuration:
+- **Group**: `com.example`
+- **Artifact**: `demo`
+- **Name**: `demo`
+- **Description**: Demo project for Spring Boot
+- **Packaging**: `Jar`
+- **Java**: `11`
+- **Dependencies**: Spring Web, Spring Data JPA, H2 Database.
+
+### Step 3: Project Structure
+
+```plaintext
+demo
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── com
+│   │   │       └── example
+│   │   │           └── demo
+│   │   │               ├── DemoApplication.java
+│   │   │               ├── model
+│   │   │               │   └── Buyer.java
+│   │   │               ├── repository
+│   │   │               │   ├── BuyerRepository.java
+│   │   │               │   └── BuyerRepositoryImpl.java
+│   │   │               ├── service
+│   │   │               │   ├── BuyerService.java
+│   │   │               │   └── BuyerServiceImpl.java
+│   │   │               └── controller
+│   │   │                   └── BuyerController.java
+│   │   └── resources
+│   │       ├── application.properties
+│   │       └── data.sql
+│   └── test
+│       └── java
+│           └── com
+│               └── example
+│                   └── demo
+│                       └── DemoApplicationTests.java
+└── pom.xml
+```
+
+### Step 4: Step-by-Step Coding
+
+#### pom.xml
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>demo</name>
+    <description>Demo project for Spring Boot</description>
+    <properties>
+        <java.version>11</java.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+#### DemoApplication.java
+
+```java
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}
+```
+
+#### Buyer.java
+
+```java
+package com.example.demo.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Buyer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String name;
+    private String email;
+
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+}
+```
+
+#### BuyerRepository.java
+
+```java
+package com.example.demo.repository;
+
+import com.example.demo.model.Buyer;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface BuyerRepository extends JpaRepository<Buyer, Integer> {
+}
+```
+
+#### BuyerService.java
+
+```java
+package com.example.demo.service;
+
+import com.example.demo.model.Buyer;
+import java.util.List;
+
+public interface BuyerService {
+    Buyer getBuyerDetails(int id);
+    Buyer createBuyer(String name, String email);
+    Buyer updateBuyer(int id, String name, String email);
+    void deleteBuyer(int id);
+    List<Buyer> listBuyers();
+}
+```
+
+#### BuyerServiceImpl.java
+
+```java
+package com.example.demo.service;
+
+import com.example.demo.model.Buyer;
+import com.example.demo.repository.BuyerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class BuyerServiceImpl implements BuyerService {
+    @Autowired
+    private BuyerRepository repository;
+
+    @Override
+    public Buyer getBuyerDetails(int id) {
+        Optional<Buyer> buyer = repository.findById(id);
+        return buyer.orElse(null);
+    }
+
+    @Override
+    public Buyer createBuyer(String name, String email) {
+        Buyer buyer = new Buyer();
+        buyer.setName(name);
+        buyer.setEmail(email);
+        return repository.save(buyer);
+    }
+
+    @Override
+    public Buyer updateBuyer(int id, String name, String email) {
+        Optional<Buyer> optionalBuyer = repository.findById(id);
+        if (optionalBuyer.isPresent()) {
+            Buyer buyer = optionalBuyer.get();
+            buyer.setName(name);
+            buyer.setEmail(email);
+            return repository.save(buyer);
+        }
+        return null;
+    }
+
+    @Override
+    public void deleteBuyer(int id) {
+        repository.deleteById(id);
+    }
+
+    @Override
+    public List<Buyer> listBuyers() {
+        return repository.findAll();
+    }
+}
+```
+
+#### BuyerController.java
+
+```java
+package com.example.demo.controller;
+
+import com.example.demo.model.Buyer;
+import com.example.demo.service.BuyerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/buyers")
+public class BuyerController {
+    @Autowired
+    private BuyerService buyerService;
+
+    @GetMapping("/{id}")
+    public Buyer getBuyerDetails(@PathVariable int id) {
+        return buyerService.getBuyerDetails(id);
+    }
+
+    @PostMapping("/")
+    public Buyer createBuyer(@RequestParam String name, @RequestParam String email) {
+        return buyerService.createBuyer(name, email);
+    }
+
+    @PutMapping("/{id}")
+    public Buyer updateBuyer(@PathVariable int id, @RequestParam String name, @RequestParam String email) {
+        return buyerService.updateBuyer(id, name, email);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteBuyer(@PathVariable int id) {
+        buyerService.deleteBuyer(id);
+    }
+
+    @GetMapping("/")
+    public List<Buyer> listBuyers() {
+        return buyerService.listBuyers();
+    }
+}
+```
+
+#### application.properties
+
+```properties
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+```
+
+#### data.sql (Initial test data)
+
+```sql
+INSERT INTO buyer (name, email) VALUES ('John Doe', 'john@example.com');
+INSERT INTO buyer (name, email) VALUES ('Jane Smith', 'jane@example.com');
+```
+
+### Step 5: Generate PlantUML
+
+Here is the PlantUML code representing the final model after applying DDD.
+
+```plantuml
+@startuml
+
+' Define the Buyer class (Domain Entity)
+class Buyer {
+    - id: int
+    - name: string
+    - email: string
+    + getBuyerDetails(): void
+    + setEmail(email: string): void
+    + createBuyer(): void
+    + updateBuyer(): void
+    + deleteBuyer(): void
+    + listBuyers(): void
+}
+
+' Define the BuyerRepository interface (Repository Layer)
+interface BuyerRepository {
+    + findById(id: int): Buyer
+    + save(buyer: Buyer): void
+    + update(buyer: Buyer): void
+    + deleteById(id: int): void
+    + findAll(): List<Buyer>
+}
+
+' Define the BuyerService interface (Service Layer)
+interface BuyerService {
+    + getBuyerDetails(id: int): Buyer
+    + createBuyer(name: string, email: string): Buyer
+    + updateBuyer(id: int, name: string, email: string): Buyer
+    + deleteBuyer(id: int): void
+    + listBuyers(): List<Buyer>
+}
+
+' Define the BuyerServiceImpl class (Service Implementation)
+class BuyerServiceImpl {
+    - repository: BuyerRepository
+    + getBuyerDetails(id: int): Buyer
+    + createBuyer(name: string, email: string): Buyer
+    + updateBuyer(id: int, name: string, email: string): Buyer
+    + deleteBuyer(id: int): void
+    + listBuyers(): List<Buyer>
+}
+
+' Define relationships
+BuyerService <|.. BuyerServiceImpl
+BuyerServiceImpl ..> Buyer
+BuyerServiceImpl ..> BuyerRepository : use
+BuyerRepository <|.. BuyerServiceImpl
+BuyerRepository ..> Buyer
+
+@enduml
+```

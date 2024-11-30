@@ -1,0 +1,18 @@
+```plantuml
+@start
+
+umlclass Buyer {
+    - ID: String
+    - Email: String
+    - FullName: String
+    - Address: String
+    -: PhoneNumber String
+    - CreatedAt: Date
+
+    + Buyer()
+    + GetBuyer(ID: String): Buyer
+    + UpdateBuyer(ID: String): void
+}
+
+@enduml
+```

@@ -1,0 +1,16 @@
+```plantuml
+@startuml
+class Buyer {
+  - ID : String
+  - Email : String
+  - FullName : String
+  - Address : String
+  - PhoneNumber : String
+  - CardNumber : String
+
+  + Buyer(ID : String, Email : String FullName, : String, Address : String, PhoneNumber String :Number Card, : String)
+ Get + Buyer() : Buyer
+  + UpdateBuyer(ID : String, Email : String, FullName : String, Address : String, : PhoneNumber String,Number : Card String) : void
+}
+@enduml
+```

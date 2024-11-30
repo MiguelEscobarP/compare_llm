@@ -1,0 +1,18 @@
+```
+umlplant@startuml
+
+class Buyer {
+    ID : int
+    Email : String
+    FullName : String
+    Address : String
+    PhoneNumber : String
+    CreditCardNumber : String
+    -- --
+ Methods    void Update()
+    Buyer GetBuyer()
+    void UpdateBuyer()
+}
+
+@enduml
+```
