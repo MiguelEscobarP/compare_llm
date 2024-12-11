@@ -13,7 +13,7 @@ async function createGemini() {
       throw new Error("El UML description no es válido o está vacío.");
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY || "AIzaSyDaM5bBxAs_Trurcc0_aOWXPoSPphUzMP8");
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-pro",
