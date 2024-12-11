@@ -1,4 +1,9 @@
-Class Diagram:
-- Class: Buyer
-    - Attributes: id (int), name (string), email (string)
-    - Methods: getBuyerDetails(), setEmail(email), createBuyer(), updateBuyer(), deleteBuyer(), listBuyers()
+@startuml
+class Buyer {
+    ID: int
+    FullName: string
+    PaymentMethods: List<PaymentMethod>
+    Buyer(params): void
+}
+@enduml
+

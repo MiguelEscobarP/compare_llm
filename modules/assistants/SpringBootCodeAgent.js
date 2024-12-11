@@ -17,10 +17,10 @@ async function createSpringBootCodeAgent() {
                 {
                     role: "user",
                     content: `
-You will generate comprehensive Spring Boot code for the following UML diagram extended with Domain-Driven Design (DDD). Follow these steps to ensure the process is detailed and sequential:
+You will generate comprehensive Spring Boot code for the following UML diagram . Follow these steps to ensure the process is detailed and sequential:
 
 1. **Specify Java Version**:
-   - Use Java 11 for this project.
+   - Use Java 17 for this project.
 
 2. **Spring Initializr**:
    - Use Spring Initializr to create the project.
@@ -30,7 +30,7 @@ You will generate comprehensive Spring Boot code for the following UML diagram e
      - Name: demo
      - Description: Demo project for Spring Boot
      - Packaging: Jar
-     - Java: 11
+     - Java: 17
 
 3. **Dependencies**:
    - Add dependencies: Spring Web, Spring Data JPA, H2 Database (for simplicity).
@@ -42,8 +42,6 @@ You will generate comprehensive Spring Boot code for the following UML diagram e
    - Start with the \`pom.xml\` file to include all necessary dependencies.
    - Create the main application class (e.g., \`DemoApplication\`).
    - Define entity classes based on the UML diagram provided.
-   - Create repository interfaces for the entities.
-   - Implement service classes for the entities.
    - Create controller classes for handling HTTP requests.
    - Provide configurations for the application (e.g., database configurations).
 
