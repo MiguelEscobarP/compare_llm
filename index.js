@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import readline from "readline"; // Importamos readline para entrada del usuario
 
 dotenv.config();
 
@@ -38,15 +39,51 @@ async function main() {
   // Inicializamos los agentes
   const gpt = await createGpt();
 
-  console.log("Ejecutando agentes de GPT...");
-  try {
-    // Ejecutamos GPT y almacenamos la respuesta en el archivo correspondiente
-    const gptResponse = await gpt(umlDescription);
-    fs.writeFileSync(gptResultPath, gptResponse, "utf-8");
-    console.log("Resultados de GPT guardados en:", gptResultPath);
-  } catch (error) {
-    console.error("Error al ejecutar GPT:", error.message);
-  }
+  // Solicitar número de iteraciones al usuario
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+rl.question(
+    "¿Cuántas iteraciones deseas ejecutar?\n",
+    async (inputIterations) => {
+      const iterations = parseInt(inputIterations.trim(), 10);
+
+      if (isNaN(iterations) || iterations <= 0) {
+        console.error("Por favor, ingresa un número válido de iteraciones.");
+        rl.close();
+        return;
+      }
+
+      console.log(`Ejecutando ${iterations} iteración(es)...`);
+
+      for (let i = 0; i < iterations; i++) {
+        const iterationNumber =
+          fs
+            .readdirSync(gptResultsDir)
+            .filter(
+              (file) => file.startsWith("iteracion") && file.endsWith(".txt")
+            ).length + 1; // Calcula el número de iteración actual
+        const gptResultPath = path.join(
+          gptResultsDir,
+          `iteracion${iterationNumber}.txt`
+        );
+
+        console.log(`\nIteración ${i + 1} de ${iterations} en progreso...`);
+
+        try {
+          const gptResponse = await gpt(umlDescription);
+          fs.writeFileSync(gptResultPath, gptResponse, "utf-8");
+          console.log("Resultados de GPT guardados en:", gptResultPath);
+        } catch (error) {
+          console.error("Error al ejecutar GPT en la iteración", i + 1, ":", error.message);
+        }
+      }
+
+      console.log("Listo");
+      rl.close();
+}
+  );
 
 
 /*
