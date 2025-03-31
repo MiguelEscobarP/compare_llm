@@ -12,12 +12,14 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
   const experimentName = "DDD-Extension";
-  const resultsDir = path.join(__dirname, "results", experimentName);
+  const gptResultsDir = path.join(__dirname, "results", experimentName, "gpt");
 
-  if (!fs.existsSync(resultsDir)) {
-    fs.mkdirSync(resultsDir, { recursive: true });
+  // Asegúrate de que la carpeta base de resultados exista
+  if (!fs.existsSync(gptResultsDir)) {
+    fs.mkdirSync(gptResultsDir, { recursive: true });
   }
 
+  // Leer el UML desde un archivo
   const umlDescriptionPath = path.join(__dirname, "uml_description.txt");
   const umlDescription = fs.readFileSync(umlDescriptionPath, "utf-8").trim();
 
@@ -26,18 +28,28 @@ async function main() {
     return;
   }
 
+  // Determina el próximo número de iteración basado en los archivos existentes
+  const existingFiles = fs
+    .readdirSync(gptResultsDir)
+    .filter((file) => file.startsWith("iteracion") && file.endsWith(".txt"));
+  const nextIteration = existingFiles.length + 1; // Calcula el número de la próxima iteración
+  const gptResultPath = path.join(gptResultsDir, `iteracion${nextIteration}.txt`);
+
+  // Inicializamos los agentes
   const gpt = await createGpt();
-  const geminiAgent = await createGemini();
 
   console.log("Ejecutando agentes de GPT...");
   try {
+    // Ejecutamos GPT y almacenamos la respuesta en el archivo correspondiente
     const gptResponse = await gpt(umlDescription);
-    const gptResultPath = path.join(resultsDir, "GPT_Result.txt");
     fs.writeFileSync(gptResultPath, gptResponse, "utf-8");
     console.log("Resultados de GPT guardados en:", gptResultPath);
   } catch (error) {
     console.error("Error al ejecutar GPT:", error.message);
   }
+
+
+/*
 
   console.log("Ejecutando generación con Gemini...");
   try {
@@ -46,7 +58,9 @@ async function main() {
     console.log("Resultados de Gemini guardados en:", geminiResultPath);
   } catch (error) {
     console.error("Error al ejecutar Gemini:", error.message);
-  }
+  }*/
 }
 
+
 main();
+
