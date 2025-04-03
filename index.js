@@ -14,10 +14,14 @@ const __dirname = path.dirname(__filename);
 async function main() {
   const experimentName = "DDD-Extension";
   const gptResultsDir = path.join(__dirname, "results", experimentName, "gpt");
+  const geminiResultsDir = path.join(__dirname, "results", experimentName, "gemini");
 
   // Asegúrate de que la carpeta base de resultados exista
   if (!fs.existsSync(gptResultsDir)) {
     fs.mkdirSync(gptResultsDir, { recursive: true });
+  }
+  if (!fs.existsSync(geminiResultsDir)) {
+    fs.mkdirSync(geminiResultsDir, { recursive: true });
   }
 
   // Leer el UML desde un archivo
@@ -38,6 +42,7 @@ async function main() {
 
   // Inicializamos los agentes
   const gpt = await createGpt();
+  const gemini = await createGemini();
 
   // Solicitar número de iteraciones al usuario
   const rl = readline.createInterface({
@@ -57,6 +62,10 @@ rl.question(
 
       console.log(`Ejecutando ${iterations} iteración(es)...`);
 
+   // Iteraciones para GPT
+
+      console.log("\nEjecutando generación con GPT...");
+
       for (let i = 0; i < iterations; i++) {
         const iterationNumber =
           fs
@@ -69,7 +78,7 @@ rl.question(
           `iteracion${iterationNumber}.txt`
         );
 
-        console.log(`\nIteración ${i + 1} de ${iterations} en progreso...`);
+        console.log(`\nIteración ${i + 1} de ${iterations} con GPT en progreso...`);
 
         try {
           const gptResponse = await gpt(umlDescription);
@@ -80,24 +89,37 @@ rl.question(
         }
       }
 
+    // Iteraciones para Gemini
+    console.log("\nEjecutando generación con Gemini...");
+    for (let i = 0; i < iterations; i++) {
+      const iterationNumber =
+        fs
+          .readdirSync(geminiResultsDir)
+          .filter((file) => file.startsWith("iteracion") && file.endsWith(".txt"))
+          .length + 1;
+
+      const geminiResultPath = path.join(
+        geminiResultsDir,
+        `iteracion${iterationNumber}.txt`
+      );
+
+      console.log(`\nIteración ${i + 1} de ${iterations} con Gemini en progreso...`);
+
+      try {
+        // Enviar UML a Gemini y guardar resultados
+        const geminiResponse = await gemini(umlDescription, geminiResultsDir);
+        fs.writeFileSync(geminiResultPath, geminiResponse, "utf-8"); // Guarda texto completo
+        console.log("Resultados de Gemini guardados en:", geminiResultPath);
+      } catch (error) {
+        console.error("Error al ejecutar Gemini en la iteración", i + 1, ":", error.message);
+      }
+    }
+
       console.log("Listo");
       rl.close();
 }
   );
-
-
-/*
-
-  console.log("Ejecutando generación con Gemini...");
-  try {
-    const geminiResultPath = path.join(resultsDir, "Gemini_Result.txt");
-    await geminiAgent(umlDescription, geminiResultPath);
-    console.log("Resultados de Gemini guardados en:", geminiResultPath);
-  } catch (error) {
-    console.error("Error al ejecutar Gemini:", error.message);
-  }*/
 }
-
 
 main();
 
