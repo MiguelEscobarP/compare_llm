@@ -1,10 +1,11 @@
 import { createGpt } from "./modules/assistants/Gpt.js";
 import { createGemini } from "./modules/assistants/Gemini.js";
+import { createDeepseek } from "./modules/assistants/Deepseek.js";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import readline from "readline"; // Importamos readline para entrada del usuario
+import readline from "readline";
 
 dotenv.config();
 
@@ -15,16 +16,12 @@ async function main() {
   const experimentName = "DDD-Extension";
   const gptResultsDir = path.join(__dirname, "results", experimentName, "gpt");
   const geminiResultsDir = path.join(__dirname, "results", experimentName, "gemini");
+  const deepseekResultsDir = path.join(__dirname, "results", experimentName, "deepseek");
 
-  // Asegúrate de que la carpeta base de resultados exista
-  if (!fs.existsSync(gptResultsDir)) {
-    fs.mkdirSync(gptResultsDir, { recursive: true });
-  }
-  if (!fs.existsSync(geminiResultsDir)) {
-    fs.mkdirSync(geminiResultsDir, { recursive: true });
-  }
+  [gptResultsDir, geminiResultsDir, deepseekResultsDir].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
 
-  // Leer el UML desde un archivo
   const umlDescriptionPath = path.join(__dirname, "uml_description.txt");
   const umlDescription = fs.readFileSync(umlDescriptionPath, "utf-8").trim();
 
@@ -33,93 +30,77 @@ async function main() {
     return;
   }
 
-  // Determina el próximo número de iteración basado en los archivos existentes
-  const existingFiles = fs
-    .readdirSync(gptResultsDir)
-    .filter((file) => file.startsWith("iteracion") && file.endsWith(".txt"));
-  const nextIteration = existingFiles.length + 1; // Calcula el número de la próxima iteración
-  const gptResultPath = path.join(gptResultsDir, `iteracion${nextIteration}.txt`);
-
-  // Inicializamos los agentes
   const gpt = await createGpt();
   const gemini = await createGemini();
+  const deepseek = await createDeepseek();
 
-  // Solicitar número de iteraciones al usuario
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-rl.question(
-    "¿Cuántas iteraciones deseas ejecutar?\n",
-    async (inputIterations) => {
-      const iterations = parseInt(inputIterations.trim(), 10);
 
-      if (isNaN(iterations) || iterations <= 0) {
-        console.error("Por favor, ingresa un número válido de iteraciones.");
-        rl.close();
-        return;
-      }
+  rl.question("\u00bfCuántas iteraciones deseas ejecutar?\n", async (inputIterations) => {
+    const iterations = parseInt(inputIterations.trim(), 10);
 
-      console.log(`Ejecutando ${iterations} iteración(es)...`);
+    if (isNaN(iterations) || iterations <= 0) {
+      console.error("Por favor, ingresa un número válido de iteraciones.");
+      rl.close();
+      return;
+    }
 
-   // Iteraciones para GPT
+    console.log(`Ejecutando ${iterations} iteración(es)...`);
 
-      console.log("\nEjecutando generación con GPT...");
-
-      for (let i = 0; i < iterations; i++) {
-        const iterationNumber =
-          fs
-            .readdirSync(gptResultsDir)
-            .filter(
-              (file) => file.startsWith("iteracion") && file.endsWith(".txt")
-            ).length + 1; // Calcula el número de iteración actual
-        const gptResultPath = path.join(
-          gptResultsDir,
-          `iteracion${iterationNumber}.txt`
-        );
-
-        console.log(`\nIteración ${i + 1} de ${iterations} con GPT en progreso...`);
-
-        try {
-          const gptResponse = await gpt(umlDescription);
-          fs.writeFileSync(gptResultPath, gptResponse, "utf-8");
-          console.log("Resultados de GPT guardados en:", gptResultPath);
-        } catch (error) {
-          console.error("Error al ejecutar GPT en la iteración", i + 1, ":", error.message);
-        }
-      }
-
-    // Iteraciones para Gemini
-    console.log("\nEjecutando generación con Gemini...");
+    // GPT
+    console.log("\nEjecutando generación con GPT...");
     for (let i = 0; i < iterations; i++) {
-      const iterationNumber =
-        fs
-          .readdirSync(geminiResultsDir)
-          .filter((file) => file.startsWith("iteracion") && file.endsWith(".txt"))
-          .length + 1;
+      const iterationNumber = fs.readdirSync(gptResultsDir).filter(f => f.startsWith("iteracion") && f.endsWith(".txt")).length + 1;
+      const gptResultPath = path.join(gptResultsDir, `iteracion${iterationNumber}.txt`);
 
-      const geminiResultPath = path.join(
-        geminiResultsDir,
-        `iteracion${iterationNumber}.txt`
-      );
-
-      console.log(`\nIteración ${i + 1} de ${iterations} con Gemini en progreso...`);
-
+      console.log(`\nIteración ${i + 1} con GPT...`);
       try {
-        // Enviar UML a Gemini y guardar resultados
-        const geminiResponse = await gemini(umlDescription, geminiResultsDir);
-        fs.writeFileSync(geminiResultPath, geminiResponse, "utf-8"); // Guarda texto completo
-        console.log("Resultados de Gemini guardados en:", geminiResultPath);
+        const response = await gpt(umlDescription);
+        fs.writeFileSync(gptResultPath, response, "utf-8");
+        console.log("Guardado en:", gptResultPath);
       } catch (error) {
-        console.error("Error al ejecutar Gemini en la iteración", i + 1, ":", error.message);
+        console.error("GPT error:", error.message);
       }
     }
 
-      console.log("Listo");
-      rl.close();
-}
-  );
+    // Gemini
+    console.log("\nEjecutando generación con Gemini...");
+    for (let i = 0; i < iterations; i++) {
+      const iterationNumber = fs.readdirSync(geminiResultsDir).filter(f => f.startsWith("iteracion") && f.endsWith(".txt")).length + 1;
+      const geminiResultPath = path.join(geminiResultsDir, `iteracion${iterationNumber}.txt`);
+
+      console.log(`\nIteración ${i + 1} con Gemini...`);
+      try {
+        const response = await gemini(umlDescription);
+        fs.writeFileSync(geminiResultPath, response, "utf-8");
+        console.log("Guardado en:", geminiResultPath);
+      } catch (error) {
+        console.error("Gemini error:", error.message);
+      }
+    }
+
+    // Deepseek
+    console.log("\nEjecutando generación con Deepseek...");
+    for (let i = 0; i < iterations; i++) {
+      const iterationNumber = fs.readdirSync(deepseekResultsDir).filter(f => f.startsWith("iteracion") && f.endsWith(".txt")).length + 1;
+      const deepseekResultPath = path.join(deepseekResultsDir, `iteracion${iterationNumber}.txt`);
+
+      console.log(`\nIteración ${i + 1} con Deepseek...`);
+      try {
+        const response = await deepseek(umlDescription);
+        fs.writeFileSync(deepseekResultPath, response, "utf-8");
+        console.log("Guardado en:", deepseekResultPath);
+      } catch (error) {
+        console.error("Deepseek error:", error.message);
+      }
+    }
+
+    console.log("\nProceso completo.");
+    rl.close();
+  });
 }
 
 main();
-
