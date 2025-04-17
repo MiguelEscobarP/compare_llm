@@ -6,7 +6,7 @@ export const name = "Deepseek";
 
 const openai = new OpenAI({
   baseURL: "https://api.deepseek.com",
-  apiKey: "sk-d80ab6d1f7f24a32bde9fe9866b37ab7" // Reemplaza por tu API key de pago
+  apiKey: "" // Reemplaza por tu API key de pago
 });
 
 async function createDeepseek() {
