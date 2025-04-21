@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import readline from "readline";
+import { execSync } from "child_process";
 
 dotenv.config();
 
@@ -39,24 +40,54 @@ async function main() {
     const deepseek = await createDeepseek();
 
     let success = { gpt: 0, gemini: 0, deepseek: 0 };
+    let correct = { gpt: 0, gemini: 0, deepseek: 0 };
     let times = { gpt: 0, gemini: 0, deepseek: 0 };
+    let compilationErrors = { gpt: 0, gemini: 0, deepseek: 0 };
 
-    const expectedFiles = ["Buyer.java", "PaymentMethod.java", "Main.java"];
+    const expectedClasses = Array.from(new Set([...umlDescription.matchAll(/class\s+(\w+)/g)].map(match => match[1])));
 
     async function runLLM(llm, name, resultDir) {
       console.log(`\nEjecutando generación con ${name.toUpperCase()}...`);
       const start = Date.now();
       for (let i = 0; i < iterations; i++) {
-        const iter =
-          fs.readdirSync(resultDir).filter((f) => f.startsWith("iteracion") && f.endsWith(".txt")).length + 1;
+        const iter = fs.readdirSync(resultDir).filter((f) => f.startsWith("iteracion") && f.endsWith(".txt")).length + 1;
         const resultPath = path.join(resultDir, `iteracion${iter}.txt`);
         try {
           const response = await llm(umlDescription);
           fs.writeFileSync(resultPath, response, "utf-8");
           const iterDir = path.resolve("pruebas", `pruebas-${name.toLowerCase()}`, `iteracion${iter}`);
-          const files = fs.existsSync(iterDir) ? fs.readdirSync(iterDir) : [];
-          const isValid = expectedFiles.every((f) => files.includes(f)) && files.length === expectedFiles.length;
-          if (isValid) success[name.toLowerCase()]++;
+          if (!fs.existsSync(iterDir)) fs.mkdirSync(iterDir, { recursive: true });
+
+          const javaCodeBlocks = response.match(/```java([\s\S]*?)```/g);
+          if (javaCodeBlocks) {
+            javaCodeBlocks.forEach((block, index) => {
+              const classNameMatch = block.match(/class\s+(\w+)/);
+              const className = classNameMatch ? `${classNameMatch[1]}.java` : `Generated${index + 1}.java`;
+              const filePath = path.join(iterDir, className);
+              fs.writeFileSync(filePath, block.replace(/```java|```/g, "").trim(), "utf-8");
+            });
+          }
+
+          try {
+            const javaFiles = fs.readdirSync(iterDir).filter(f => f.endsWith(".java")).map(f => `\"${path.join(iterDir, f)}\"`).join(" ");
+            if (javaFiles.length > 0) {
+              execSync(`javac ${javaFiles}`);
+              success[name.toLowerCase()]++;
+            } else {
+              compilationErrors[name.toLowerCase()]++;
+              console.error(`${name} compilacion error: No se encontraron archivos .java en ${iterDir}`);
+            }
+          } catch (compileError) {
+            compilationErrors[name.toLowerCase()]++;
+            console.error(`${name} compilacion error:`, compileError.message);
+          }
+
+          const filesInDir = fs.readdirSync(iterDir).filter(f => f.endsWith(".java"));
+          const expectedSet = new Set([...expectedClasses.map(cls => `${cls}.java`), "Main.java"]);
+          const filesSet = new Set(filesInDir);
+          const correctMatch = filesSet.size === expectedSet.size && [...expectedSet].every(f => filesSet.has(f));
+          if (correctMatch) correct[name.toLowerCase()]++;
+
         } catch (e) {
           console.error(`${name} error:`, e.message);
         }
@@ -68,7 +99,7 @@ async function main() {
     await runLLM(gemini, "gemini", geminiResultsDir);
     await runLLM(deepseek, "deepseek", deepseekResultsDir);
 
-    const resumen = `Resumen de iteraciones completadas\n\nCantidad de creaciones correctas por LLM:\nGPT: ${success.gpt} de ${iterations}\nGEMINI: ${success.gemini} de ${iterations}\nDEEPSEEK: ${success.deepseek} de ${iterations}\n\nTiempos totales:\nGPT: ${times.gpt} segundos\nGEMINI: ${times.gemini} segundos\nDEEPSEEK: ${times.deepseek} segundos\n`;
+    const resumen = `Resumen de iteraciones completadas\n\nCantidad de creaciones correctas por LLM (compilación exitosa):\nGPT: ${success.gpt} de ${iterations}\nGEMINI: ${success.gemini} de ${iterations}\nDEEPSEEK: ${success.deepseek} de ${iterations}\n\nCantidad de errores de compilación por LLM:\nGPT: ${compilationErrors.gpt} de ${iterations}\nGEMINI: ${compilationErrors.gemini} de ${iterations}\nDEEPSEEK: ${compilationErrors.deepseek} de ${iterations}\n\nIteraciones con estructura esperada:\nGPT: ${correct.gpt} de ${iterations}\nGEMINI: ${correct.gemini} de ${iterations}\nDEEPSEEK: ${correct.deepseek} de ${iterations}\n\nTiempos totales:\nGPT: ${times.gpt} segundos\nGEMINI: ${times.gemini} segundos\nDEEPSEEK: ${times.deepseek} segundos\n`;
 
     fs.writeFileSync(resumenPath, resumen, "utf-8");
     console.log("\nAnálisis guardado en:", resumenPath);

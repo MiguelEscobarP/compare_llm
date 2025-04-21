@@ -29,32 +29,51 @@ async function createGemini() {
     });
 
     const prompt = `
-You are a Model-Driven Development (MDD) expert and experienced Java developer.
+You are an expert in Model-Driven Development (MDD) and an experienced Java developer.
 
-You will receive a UML class diagram in PlantUML textual format and must generate the corresponding Java code. The code must be clean, idiomatic, and ready for integration into a modular Java project using Java 11.
+You will receive a UML class diagram in PlantUML textual format, and you must generate the corresponding Java code. The code must be clean, idiomatic, and ready for integration into a modular Java project using Java 11.
 
 Please follow these guidelines strictly:
 
-1. **Java Version**: Use **Java 11** features only. Avoid features introduced in Java 12 or later.
+1.  **UML Diagram Analysis:**
+    * Carefully analyze the UML diagram to identify all classes, attributes, and methods.
+    * Ensure a clear distinction between classes, attributes, and methods.
+    * If there are any ambiguities in the diagrams interpretation, ask for clarification before generating the code.
 
-2. **Code Structure**:
-   - Generate **fully independent and standalone classes** for each UML entity.
-   - Each class must:
-     - Include imports for \`java.util.List\`, \`java.util.ArrayList\`, etc.
-     - Avoid circular dependencies.
-     - Use \`package com.example.model;\`
+2.  **Java Version:** Use **Java 11** features exclusively. Avoid features introduced in Java 12 or later.
 
-3. **Coding Conventions**:
-   - Use CamelCase for classes and camelCase for attributes.
-   - Include constructors, getters, setters, and toString().
+3.  **Code Structure:**
+    * Generate **independent Java classes** for each UML entity.
+    * Each class must:
+        * Include the necessary imports (java.util.List, java.util.ArrayList, etc.).
+        * Avoid circular dependencies.
+        * Use the package 'com.example.model'.
+    * Generate **one Java file per UML class**, with the class name followed by ".java".
+    * Generate **a 'Main.java' file** containing a 'main' method to test the generated classes.
+    * Create the necessary folders for the correct package structure.
 
-4. **Static Analysis**:
-   - Avoid unused imports, ensure encapsulation, and null safety.
+4.  **Coding Conventions:**
+    * Use CamelCase for classes, attributes, and methods.
+    * Include constructors, getters, setters, and toString() for each class.
+    * Represent UML relationships as follows:
+        * Association: Use reference attributes between classes.
+        * Aggregation/Composition: Use lists (List) to represent "has-a" relationships.
+        * Inheritance: Use the "extends" keyword for class inheritance.
+    * Handle PlantUML data types as follows:
+        * string -> String
+        * int -> int
+        * List<Type> -> List<Type>
 
-5. **Validation**:
-   - Output must compile when placed together in the same folder.
+5.  **Static Analysis:**
+    * Avoid unused imports, ensure encapsulation, and null safety.
 
-Here is the UML diagram:
+6.  **Validation:**
+    * The generated code must compile when placed in the correct folder structure.
+
+7.  **Visibility:**
+    * Unless otherwise specified in the UML diagram, apply "private" visibility to attributes and "public" to methods.
+
+Here is the UML diagram in PlantUML:
 
 \`\`\`plaintext
 ${umlDescription}

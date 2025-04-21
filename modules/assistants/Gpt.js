@@ -33,47 +33,57 @@ async function createGpt() {
                 {
                     role: "user",
                     content: `
-You are a Model-Driven Development (MDD) expert and experienced Java developer.
+You are an expert in Model-Driven Development (MDD) and an experienced Java developer.
 
-You will receive a UML class diagram in PlantUML textual format and must generate the corresponding Java code. The code must be clean, idiomatic, and ready for integration into a modular Java project using Java 11.
+You will receive a UML class diagram in PlantUML textual format, and you must generate the corresponding Java code. The code must be clean, idiomatic, and ready for integration into a modular Java project using Java 11.
 
 Please follow these guidelines strictly:
 
-1. **Java Version**: Use **Java 11** features only. Avoid features introduced in Java 12 or later, such as \`var\` for variable declarations, \`switch\` expressions, or module-specific configurations.
+1.  **UML Diagram Analysis:**
+    * Carefully analyze the UML diagram to identify all classes, attributes, and methods.
+    * Ensure a clear distinction between classes, attributes, and methods.
+    * If there are any ambiguities in the diagrams interpretation, ask for clarification before generating the code.
 
-2. **Code Structure**:
-   - Generate **fully independent and standalone classes** for each UML entity.
-   - Each class must:
-     - Include imports for \`java.util.List\`, \`java.util.ArrayList\`, and other standard library classes, as needed.
-     - Avoid circular dependencies between classes unless explicitly required by the UML.
-   - Place each class in its own file, with clear and unique filenames.
-   - Use package declarations (e.g., \`package com.example.model\`).
+2.  **Java Version:** Use **Java 11** features exclusively. Avoid features introduced in Java 12 or later.
 
-3. **Coding Conventions**:
-   - Follow standard **Java naming conventions**, such as \`CamelCase\` for classes y \`camelCase\` para atributos y métodos.
-   - Include all constructors based on the UML and initialize lists.
-   - Add getters, setters, and \`toString()\` methods for all attributes.
+3.  **Code Structure:**
+    * Generate **independent Java classes** for each UML entity.
+    * Each class must:
+        * Include the necessary imports (java.util.List, java.util.ArrayList, etc.).
+        * Avoid circular dependencies.
+        * Use the package 'com.example.model'.
+    * Generate **one Java file per UML class**, with the class name followed by ".java".
+    * Generate **a 'Main.java' file** containing a 'main' method to test the generated classes.
+    * Create the necessary folders for the correct package structure.
 
-4. **Error-Void Implementation**:
-   - **Avoid common errors or omissions** like:
-     - Missing imports for types like \`List\` or \`ArrayList\`.
-     - Circular imports that prevent compilation.
-   - Warn if there are fields or types that cannot be mapped directly to Java, and provide reasonable defaults.
+4.  **Coding Conventions:**
+    * Use CamelCase for classes, attributes, and methods.
+    * Include constructors, getters, setters, and toString() for each class.
+    * Represent UML relationships as follows:
+        * Association: Use reference attributes between classes.
+        * Aggregation/Composition: Use lists (List) to represent "has-a" relationships.
+        * Inheritance: Use the "extends" keyword for class inheritance.
+    * Handle PlantUML data types as follows:
+        * string -> String
+        * int -> int
+        * List<Type> -> List<Type>
 
-5. **Static Analysis Compatibility**:
-   - Optimize code to **avoid compilation issues** or errors flagged by tools.
-   - Encapsulation must be ensured (use \`private\` fields with \`public\` accessors).
+5.  **Static Analysis:**
+    * Avoid unused imports, ensure encapsulation, and null safety.
 
-6. **Validation Mechanics**:
-   - Test the output to ensure it compiles without errors (assuming all related classes are placed in the same directory).
+6.  **Validation:**
+    * The generated code must compile when placed in the correct folder structure.
 
-Here is the UML diagram:
+7.  **Visibility:**
+    * Unless otherwise specified in the UML diagram, apply "private" visibility to attributes and "public" to methods.
 
-\\\`plaintext
+Here is the UML diagram in PlantUML:
+
+\`\`\`plaintext
 ${umlDescription}
-\\\`
+\`\`\`
 
-Your output should ONLY contain syntactically and semantically valid **Java code files** that compile successfully when run together.
+Please return **only valid Java code blocks** wrapped in triple backticks.
 `
 
                 }
