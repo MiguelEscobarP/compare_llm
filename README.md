@@ -1,4 +1,4 @@
-#README
+
 Manual de Usuario: Guía de Inicio Rápido
 
 Esta sección proporciona una guía paso a paso para la configuración, despliegue y ejecución del sistema compare_llm. Su objetivo es permitir a los usuarios replicar los experimentos de comparación de Modelos de Lenguaje Grandes (LLMs) de manera eficiente.
